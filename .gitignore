@@ -1,0 +1,22 @@
+# Ignorar archivos de sistema
+.DS_Store
+Thumbs.db
+
+# Ignorar dependencias (se instalan con Docker o npm install)
+node_modules/
+/backend-api/vendor/bundle
+/backend-api/tmp/
+/backend-api/log/
+
+# Ignorar base de datos local y almacenamiento
+/backend-api/storage/
+/tmp/db-data/
+
+# Ignorar variables de entorno reales (¡CRÍTICO!)
+.env
+*.env
+.env.local
+
+# Ignorar builds
+/frontend-app/dist
+/frontend-app/build

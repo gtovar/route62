@@ -1,0 +1,65 @@
+version: '3.8'
+
+services:
+  # 1. Base de Datos Principal (PostgreSQL)
+  # Necesaria para la persistencia de Usuarios, Links y Visitas [4].
+  db:
+    image: postgres:14-alpine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: shortener_dev
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+
+  # 2. Almacenamiento en Memoria (Redis)
+  # CRÍTICO: Las fuentes [2] indican que para servir links virales y 
+  # calcular el "Top 100" rápido, la RAM es obligatoria.
+  redis:
+    image: redis:alpine
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+
+  # 3. Backend (Ruby on Rails API)
+  # Se encargará del algoritmo de acortamiento y la lógica Base62.
+  backend:
+    build:
+      context: ./backend-api
+      dockerfile: Dockerfile
+    command: bash -c "rm -f tmp/pids/server.pid && bundle exec rails s -b '0.0.0.0'"
+    volumes:
+      - ./backend-api:/app
+    ports:
+      - "3000:3000"
+    depends_on:
+      - db
+      - redis
+    environment:
+      DATABASE_URL: postgres://postgres:password@db:5432/shortener_dev
+      REDIS_URL: redis://redis:6379/1
+      # Clave para simular producción en local
+      RAILS_ENV: development
+
+  # 4. Frontend (React SPA)
+  # Bonus points: Separado del backend [4].
+  frontend:
+    build:
+      context: ./frontend-app
+      dockerfile: Dockerfile
+    volumes:
+      - ./frontend-app:/app
+      - /app/node_modules
+    ports:
+      - "3001:3000" # Exponemos React en el puerto 3001 de tu máquina
+    environment:
+      - REACT_APP_API_URL=http://localhost:3000
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
+  redis_data:
