@@ -41,5 +41,21 @@ RSpec.describe "Users API", type: :request do
       body = JSON.parse(response.body)
       expect(body["errors"]).to include("Email has already been taken")
     end
+
+    it "returns 422 when the database raises RecordNotUnique" do
+      allow_any_instance_of(User).to receive(:save).and_raise(ActiveRecord::RecordNotUnique)
+
+      post "/signup", params: {
+        user: {
+          name: "Race Condition User",
+          email: "race@example.com",
+          password: "secret123"
+        }
+      }
+
+      expect(response).to have_http_status(:unprocessable_content)
+      body = JSON.parse(response.body)
+      expect(body["errors"]).to include("Email has already been taken")
+    end
   end
 end

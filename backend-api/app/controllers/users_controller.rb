@@ -8,6 +8,8 @@ class UsersController < ApplicationController
     else
       render json: { errors: user.errors.full_messages }, status: :unprocessable_content
     end
+  rescue ActiveRecord::RecordNotUnique
+    render json: { errors: ["Email has already been taken"] }, status: :unprocessable_content
   end
 
   private
