@@ -1,41 +1,56 @@
 # URL Shortener Challenge
 
-High-performance URL shortening system designed with **Indirection** architecture to scale redirections and analytics.
+## Description
+You can use this project to generate short links from long URLs with a Rails
+API + React frontend stack. The goal is to provide fast link creation today and
+prepare the system for scalable redirects and analytics.
 
-## 🚀 Architecture Stack
+## Technical Requirements
+- Docker Engine (recommended: `24.x` or newer)
+- Docker Compose plugin (recommended: `2.x` or newer)
 
-| Component | Technology | Technical Justification |
-| --- | --- | --- |
-| Backend | Ruby on Rails 8 (API) | Robust concurrency handling and a mature ORM for links and analytics. |
-| Frontend | React + Vite (TypeScript) | Reactive SPA for a fluid user experience. |
-| Storage | PostgreSQL | Atomic ID generation and ACID consistency. |
-| Caching | Redis | O(1) lookup for high-traffic redirections. |
-
-## 🧮 The Core Algorithm (Base62 Strategy)
-
-We convert the numeric `ID` into Base62 to produce short, readable codes. To avoid predictability, we use a **Shuffled Alphabet** that keeps reversibility while obfuscating sequential patterns. See `docs/ALGORITHM_DEEP_DIVE.md` for the mathematical details.
-
-## 🛠️ Prerequisites
-
-- Docker
-- Docker Compose
-
-## ⚡ Quick Start (Onboarding < 2 min)
-
+## Quick Start (<= 2 minutes)
 ```bash
 cp .env.example .env
-docker-compose up --build
-rails db:create db:migrate
+docker compose up --build -d
+docker compose exec backend bundle exec rails db:create db:migrate
 ```
 
-## 📚 Documentation Index
+## Basic Usage (Smoke Test)
+Health check:
+```bash
+curl -i http://localhost:3000/up
+```
+Expected result: `HTTP/1.1 200 OK`.
 
+Create short link:
+```bash
+curl -i -X POST http://localhost:3000/links \
+  -H "Content-Type: application/json" \
+  -d '{"link":{"long_url":"https://example.com/very/long/path"}}'
+```
+
+Run backend tests:
+```bash
+make -f ops/Makefile test-backend
+```
+
+## Extended Documentation
 | Document | Description |
 | --- | --- |
 | `docs/ARCHITECTURE.md` | Architecture and key design decisions. |
 | `docs/API_REFERENCE.md` | Endpoint contracts and response codes. |
-| `docs/REENTRY.md` | Reentry guide to restore context quickly. |
+| `docs/testing.md` | How to run backend tests with Docker and Makefile shortcuts. |
+| `ops/Makefile` | Developer shortcuts for backend test commands. |
+| `docs/adr/001-shortening-algorithm.md` | ADR for Base62 + shuffled alphabet decision. |
+| `docs/REENTRY.md` | Reentry guide for fast context recovery. |
+| `Sprint_Log.md` | Daily story closure and sprint progress log. |
+| `PROJECT_STATE.md` | Current implementation status by user story. |
 
-## 🧭 Project State
+## Contributing
+- Create feature branches from `develop` (example: `feat/hu1-create-short-link`).
+- Use semantic commits (example: `feat(hu1): ...`).
+- Open PRs targeting `develop`, never push directly to `main`.
 
-Status: Development
+## License
+Private repository. All rights reserved unless explicitly stated otherwise.
