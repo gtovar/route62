@@ -1,5 +1,5 @@
 # PROJECT_STATE — URL Shortener Challenge
-[Last update: 2026-02-07 — HU-01 completed]
+[Last update: 2026-02-08 — HU-03 completed]
 
 ## 1. System Overview
 Initial setup of the monolithic repo containing Rails 8 API and React Frontend, fully dockerized.
@@ -29,5 +29,33 @@ Initial setup of the monolithic repo containing Rails 8 API and React Frontend, 
 - Shuffled Base62 alphabet implemented in `ShortenerService`
 - Slug uniqueness enforced by DB index and model validation.
 
+### ✅ HU-02 — Redirect Visitor (DONE)
+**Coordinates:**
+- Branch: `feat/hu2-redirect-visitor`
+- Key Files:
+  - `backend-api/app/controllers/redirects_controller.rb`
+  - `backend-api/spec/requests/redirects_spec.rb`
+  - `backend-api/config/routes.rb`
+**Evidence:**
+- `GET /:slug` implemented with:
+  - `301 Moved Permanently` when slug exists.
+  - `404 Not Found` when slug does not exist.
+- Internal health check moved to `GET /_internal/up` to keep slug namespace clear.
+
+### ✅ HU-03 — User Registration (DONE)
+**Coordinates:**
+- Branch: `feat/hu3-user-registration`
+- Key Files:
+  - `backend-api/app/models/user.rb`
+  - `backend-api/app/controllers/users_controller.rb`
+  - `backend-api/app/services/auth_token_service.rb`
+  - `backend-api/spec/requests/users_spec.rb`
+  - `backend-api/db/migrate/20260208000100_create_users.rb`
+**Evidence:**
+- Endpoint implemented: `POST /signup`
+- Unique email constraint implemented at model and DB index level.
+- Successful signup returns user payload + auth token (auto login).
+- Request specs for valid signup and duplicate email path passing.
+
 ## 8. Next Immediate Action (Single Step)
-Start HU-02 by implementing redirect lookup endpoint for `GET /:slug` with 301 for valid slugs and custom 404 for missing slugs.
+Start HU-04 by recording visit metadata asynchronously (IP, User-Agent, timestamp) on redirect events.

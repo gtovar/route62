@@ -32,7 +32,7 @@ docker-compose exec backend rails db:create db:migrate
 
 ### Option A: backend container is already running
 ```bash
-docker compose exec backend bundle exec rspec spec/services/shortener_service_spec.rb
+docker compose exec -e RAILS_ENV=test backend bundle exec rspec spec/services/shortener_service_spec.rb
 ```
 
 ### Option B: backend container is not running
@@ -42,17 +42,22 @@ docker compose run --rm backend bundle exec rspec spec/services/shortener_servic
 
 ### Run all backend tests
 ```bash
-docker compose run --rm backend bundle exec rspec
+docker compose exec -e RAILS_ENV=test backend bundle exec rspec
 ```
 
-- Use `exec` when services are already up (`docker compose up`).
-- Use `run --rm` for one-off test execution without depending on a running container.
+- Use `exec` for daily development when services are up.
+- Use `run --rm` only for one-off isolated runs.
 
 ## Current Status
-- Internal health check route available at `GET /_internal/up`.
+- Health check: `GET /_internal/up`
+- Link creation: `POST /links`
+- Redirect: `GET /:slug`
+- User signup: `POST /signup`
+
+## Environment Notes
+- No new env vars were required for HU-03.
+- JWT tokens use `Rails.application.secret_key_base`.
 
 ## Next Likely Steps
-- Implement Link model and Base62 encoder.
-- Add API routes for create + redirect.
-- Wire frontend form to the API.
-- Add cache lookups in Redis.
+- Implement HU-04 visit tracking with async processing.
+- Add visit metadata persistence and analytics-ready schema.
