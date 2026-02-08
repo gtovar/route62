@@ -49,8 +49,7 @@ docker compose run --rm backend bundle exec rspec
 - Use `run --rm` for one-off test execution without depending on a running container.
 
 ## Current Status
-- Rails app has only the default health check route (`GET /up`).
-- No models, controllers, or API endpoints are implemented yet.
+- Internal health check route available at `GET /_internal/up`.
 
 ## Next Likely Steps
 - Implement Link model and Base62 encoder.
