@@ -2,18 +2,16 @@ class LinksController < ApplicationController
   def create
     link = Link.new(link_params)
 
-    if link.save
-      begin
-        link.assign_unique_slug!
-        render json: link_payload(link), status: :created
-      rescue ActiveRecord::RecordInvalid
-        render json: { errors: ["Slug has already been taken"] }, status: :unprocessable_content
-      rescue ActiveRecord::RecordNotUnique
-        render json: { errors: ["Slug has already been taken"] }, status: :unprocessable_content
-      end
-    else
-      render json: { errors: link.errors.full_messages }, status: :unprocessable_content
+    Link.transaction do
+      link.save!
+      link.assign_unique_slug!
     end
+
+    render json: link_payload(link), status: :created
+  rescue ActiveRecord::RecordInvalid => error
+    render json: { errors: error.record.errors.full_messages }, status: :unprocessable_content
+  rescue ActiveRecord::RecordNotUnique
+    render json: { errors: ["Slug has already been taken"] }, status: :unprocessable_content
   end
 
   private
