@@ -43,6 +43,7 @@ make -f ops/Makefile test-backend
 | `docs/testing.md` | How to run backend tests with Docker and Makefile shortcuts. |
 | `ops/Makefile` | Developer shortcuts for backend test commands. |
 | `docs/adr/001-shortening-algorithm.md` | ADR for Base62 + shuffled alphabet decision. |
+| `docs/adr/002-auth-strategy.md` | ADR for HU-03 authentication strategy (JWT on signup). |
 | `docs/REENTRY.md` | Reentry guide for fast context recovery. |
 | `Sprint_Log.md` | Daily story closure and sprint progress log. |
 | `PROJECT_STATE.md` | Current implementation status by user story. |
