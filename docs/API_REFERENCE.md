@@ -7,7 +7,7 @@ This document lists the **current** API routes plus the **planned** endpoints.
 
 ## Health
 
-`GET /up`
+`GET /_internal/up`
 - Purpose: liveness check
 - Response: HTTP 200 when the Rails app boots successfully
 

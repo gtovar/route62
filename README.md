@@ -19,7 +19,7 @@ docker compose exec backend bundle exec rails db:create db:migrate
 ## Basic Usage (Smoke Test)
 Health check:
 ```bash
-curl -i http://localhost:3000/up
+curl -i http://localhost:3000/_internal/up
 ```
 Expected result: `HTTP/1.1 200 OK`.
 
