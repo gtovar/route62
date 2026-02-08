@@ -1,5 +1,5 @@
 # PROJECT_STATE — URL Shortener Challenge
-[Last update: 2026-02-08 — HU-03 completed]
+[Last update: 2026-02-09 — HU-04 completed]
 
 ## 1. System Overview
 Initial setup of the monolithic repo containing Rails 8 API and React Frontend, fully dockerized.
@@ -57,5 +57,22 @@ Initial setup of the monolithic repo containing Rails 8 API and React Frontend, 
 - Successful signup returns user payload + auth token (auto login).
 - Request specs for valid signup and duplicate email path passing.
 
+### ✅ HU-04 — Track Visit Metadata (DONE)
+**Coordinates:**
+- Branch: `feat/hu4-track-visit-metadata`
+- Key Files:
+  - `backend-api/db/migrate/20260209000100_create_visits.rb`
+  - `backend-api/app/models/visit.rb`
+  - `backend-api/app/jobs/track_visit_job.rb`
+  - `backend-api/app/controllers/redirects_controller.rb`
+  - `backend-api/spec/requests/redirects_spec.rb`
+**Evidence:**
+- On redirect, metadata is enqueued asynchronously with:
+  - `ip_address`
+  - `user_agent`
+  - `visited_at`
+- Redirect behavior remains `301` for valid slugs and `404` for missing slugs.
+- Request specs validate both redirect behavior and async tracking enqueue.
+
 ## 8. Next Immediate Action (Single Step)
-Start HU-04 by recording visit metadata asynchronously (IP, User-Agent, timestamp) on redirect events.
+Start HU-05 by building dashboard stats for links (click counts and unique vs recurrent visits).

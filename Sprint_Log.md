@@ -26,3 +26,15 @@
 
 ### Decision Maker (G0–G3)
 - Decision recorded as ADR: JWT token on signup (API-only flow) instead of cookie-based session for HU-03 scope.
+
+## 2026-02-09
+
+### HU-04 — Track Visit Metadata (Closed)
+- Added `visits` table with `link_id`, `ip_address`, `user_agent`, and `visited_at`.
+- Added `Visit` model and `Link has_many :visits` relation.
+- Added `TrackVisitJob` for asynchronous metadata persistence.
+- Updated redirect flow to enqueue visit tracking without blocking `301` redirect.
+- Added request spec coverage for async job enqueue during redirect.
+
+### Decision Maker (G0–G3)
+- Decision recorded as ADR: async job-based visit tracking for redirect latency protection (HU-04 scope).

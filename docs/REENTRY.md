@@ -53,11 +53,13 @@ docker compose exec -e RAILS_ENV=test backend bundle exec rspec
 - Link creation: `POST /links`
 - Redirect: `GET /:slug`
 - User signup: `POST /signup`
+- Visit tracking: async enqueue on redirect via `TrackVisitJob`
 
 ## Environment Notes
 - No new env vars were required for HU-03.
 - JWT tokens use `Rails.application.secret_key_base`.
+- No new env vars were required for HU-04.
 
 ## Next Likely Steps
-- Implement HU-04 visit tracking with async processing.
-- Add visit metadata persistence and analytics-ready schema.
+- Implement HU-05 dashboard stats from `links` + `visits`.
+- Add unique vs recurrent visit metrics for top links.
