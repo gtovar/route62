@@ -30,6 +30,8 @@
 - Success response:
   - Status: `301 Moved Permanently`
   - Header: `Location: <long_url>`
+  - Side effect:
+    - Enqueues `TrackVisitJob` with `link_id`, `ip_address`, `user_agent`, and `visited_at`.
 - Not found response:
   - Status: `404 Not Found`
   - Body:

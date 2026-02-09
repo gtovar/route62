@@ -1,4 +1,6 @@
 class Link < ApplicationRecord
+  has_many :visits, dependent: :destroy
+
   validates :long_url, presence: true
   validate :long_url_must_be_http_or_https
 
