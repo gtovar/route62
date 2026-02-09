@@ -38,6 +38,20 @@ RSpec.describe "Redirects API", type: :request do
       )
     end
 
+    it "uses a safe fallback when User-Agent is missing" do
+      Link.create!(long_url: "https://example.com/content", slug: "abc")
+
+      expect do
+        get "/abc", headers: { "User-Agent" => "" }
+      end.to have_enqueued_job(TrackVisitJob).with(
+        hash_including(
+          link_id: Link.find_by!(slug: "abc").id,
+          ip_address: "127.0.0.1",
+          user_agent: "Unknown"
+        )
+      )
+    end
+
     it "returns 404 when slug does not exist" do
       get "/missing"
 
