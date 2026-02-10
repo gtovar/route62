@@ -1,0 +1,167 @@
+{
+  "info": {
+    "name": "URL Shortener Challenge",
+    "_postman_id": "b7f5a26d-3ea9-4f8b-9ab4-12c6e8e8b3f1",
+    "description": "Collection for signup, link creation, redirect, and stats.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Auth - Signup",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"user\": {\n    \"name\": \"Ana\",\n    \"email\": \"ana@example.com\",\n    \"password\": \"secret123\"\n  }\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/signup",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "signup"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 201', function () {",
+              "  pm.response.to.have.status(201);",
+              "});",
+              "const json = pm.response.json();",
+              "if (json.token) {",
+              "  pm.collectionVariables.set('token', json.token);",
+              "}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Links - Create",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"link\": {\n    \"long_url\": \"{{long_url}}\"\n  }\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/links",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "links"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 201', function () {",
+              "  pm.response.to.have.status(201);",
+              "});",
+              "const json = pm.response.json();",
+              "if (json.slug) {",
+              "  pm.collectionVariables.set('slug', json.slug);",
+              "}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Redirect - By Slug",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/{{slug}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "{{slug}}"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Links - Stats (Auth)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/links/stats",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "links",
+            "stats"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Health",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/_internal/up",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "_internal",
+            "up"
+          ]
+        }
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3000"
+    },
+    {
+      "key": "token",
+      "value": ""
+    },
+    {
+      "key": "slug",
+      "value": "abc"
+    },
+    {
+      "key": "long_url",
+      "value": "https://example.com/very/long/path"
+    }
+  ]
+}

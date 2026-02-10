@@ -38,3 +38,13 @@
 
 ### Decision Maker (G0–G3)
 - Decision recorded as ADR: async job-based visit tracking for redirect latency protection (HU-04 scope).
+
+### HU-05 — Link Dashboard & Stats (Closed)
+- Added authenticated stats endpoint: `GET /links/stats`.
+- Added top-100 limit on returned links.
+- Added per-link metrics: `total_clicks`, `unique_visits`, `recurrent_visits`.
+- Added user-to-links relation with `user_id` on links.
+- Added request specs for unauthorized access, user scoping, and top-100 cap.
+
+### Decision Maker (G0–G3)
+- No new ADR for HU-05. Decision considered routine extension of existing analytics model and query layer.

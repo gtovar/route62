@@ -1,4 +1,5 @@
 class Link < ApplicationRecord
+  belongs_to :user, optional: true
   has_many :visits, dependent: :destroy
 
   validates :long_url, presence: true
