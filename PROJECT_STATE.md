@@ -1,5 +1,5 @@
 # PROJECT_STATE — URL Shortener Challenge
-[Last update: 2026-02-09 — HU-04 completed]
+[Last update: 2026-02-09 — HU-05 completed]
 
 ## 1. System Overview
 Initial setup of the monolithic repo containing Rails 8 API and React Frontend, fully dockerized.
@@ -74,5 +74,28 @@ Initial setup of the monolithic repo containing Rails 8 API and React Frontend, 
 - Redirect behavior remains `301` for valid slugs and `404` for missing slugs.
 - Request specs validate both redirect behavior and async tracking enqueue.
 
+### ✅ HU-05 — Link Dashboard & Stats (DONE)
+**Coordinates:**
+- Branch: `feat/hu5-link-dashboard-stats`
+- Key Files:
+  - `backend-api/app/controllers/links_stats_controller.rb`
+  - `backend-api/spec/requests/links_stats_spec.rb`
+  - `backend-api/db/migrate/20260209000200_add_user_to_links.rb`
+  - `backend-api/app/models/user.rb`
+  - `backend-api/app/models/link.rb`
+  - `backend-api/app/controllers/application_controller.rb`
+  - `backend-api/config/routes.rb`
+**Evidence:**
+- Endpoint implemented: `GET /links/stats` (auth required with Bearer token).
+- Stats include:
+  - `total_clicks`
+  - `unique_visits`
+  - `recurrent_visits`
+- Results are limited to top 100 links.
+- Request specs cover:
+  - `401` when auth header is missing.
+  - user scoping (only current user links returned).
+  - result cap at 100 items.
+
 ## 8. Next Immediate Action (Single Step)
-Start HU-05 by building dashboard stats for links (click counts and unique vs recurrent visits).
+Close remaining global challenge gaps (auth for create links, links CRUD + pagination, API key, frontend dashboard UI).

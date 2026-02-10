@@ -45,6 +45,7 @@ make -f ops/Makefile test-backend
 | `docs/adr/001-shortening-algorithm.md` | ADR for Base62 + shuffled alphabet decision. |
 | `docs/adr/002-auth-strategy.md` | ADR for HU-03 authentication strategy (JWT on signup). |
 | `docs/adr/003-visit-tracking-strategy.md` | ADR for HU-04 async visit tracking strategy. |
+| `docs/postman/url-shortener-challenge.postman_collection.json` | Postman collection for signup, link creation, redirect, and stats. |
 | `docs/REENTRY.md` | Reentry guide for fast context recovery. |
 | `Sprint_Log.md` | Daily story closure and sprint progress log. |
 | `PROJECT_STATE.md` | Current implementation status by user story. |

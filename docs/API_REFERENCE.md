@@ -50,3 +50,19 @@
   - Status: `422 Unprocessable Content`
   - Body:
     - `{ "errors": ["Email has already been taken"] }`
+
+## Link Stats Dashboard
+
+`GET /links/stats`
+- Auth:
+  - Required header: `Authorization: Bearer <jwt>`
+- Purpose:
+  - Return current user's most frequently accessed links (up to 100) with click metrics.
+- Success response:
+  - Status: `200 OK`
+  - Body:
+    - `{ "links": [ { "id": 1, "long_url": "...", "slug": "abc", "created_at": "...", "total_clicks": 10, "unique_visits": 4, "recurrent_visits": 6 } ] }`
+- Error response:
+  - Status: `401 Unauthorized`
+  - Body:
+    - `{ "errors": ["Unauthorized"] }`
