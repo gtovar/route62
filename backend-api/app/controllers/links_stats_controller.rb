@@ -10,20 +10,19 @@ class LinksStatsController < ApplicationController
       .order(Arel.sql("COUNT(visits.id) DESC, links.created_at DESC"))
       .limit(100)
 
-    visits_by_link_id = build_visits_index(links)
+    aggregate_by_link_id = build_breakdown_aggregates(links)
 
     render json: {
-      links: links.map { |link| link_stats_payload(link, visits_by_link_id[link.id] || []) }
+      links: links.map { |link| link_stats_payload(link, aggregate_by_link_id[link.id] || empty_aggregate) }
     }
   end
 
   private
 
-  def link_stats_payload(link, user_agents)
+  def link_stats_payload(link, aggregate)
     total_clicks = link.read_attribute("total_clicks").to_i
     unique_visits = link.read_attribute("unique_visits").to_i
-    logged_visits_count = user_agents.length
-    breakdown = build_breakdowns(user_agents, total_clicks)
+    logged_visits_count = aggregate[:logged_visits_count]
 
     {
       id: link.id,
@@ -34,43 +33,10 @@ class LinksStatsController < ApplicationController
       unique_visits: unique_visits,
       recurrent_visits: total_clicks - unique_visits,
       breakdown_denominator: logged_visits_count,
-      device_breakdown: breakdown[:device],
-      os_breakdown: breakdown[:os],
-      user_agent_breakdown: breakdown[:user_agent]
-    }
-  end
-
-  def build_visits_index(links)
-    link_ids = links.map(&:id)
-    return {} if link_ids.empty?
-
-    Visit.where(link_id: link_ids)
-      .pluck(:link_id, :user_agent)
-      .group_by(&:first)
-      .transform_values { |rows| rows.map(&:last) }
-  end
-
-  def build_breakdowns(user_agents, _total_clicks)
-    logged_visits_count = user_agents.length
-    return { device: [], os: [], user_agent: [] } if logged_visits_count.zero?
-
-    device_counts = Hash.new(0)
-    os_counts = Hash.new(0)
-    user_agent_counts = Hash.new(0)
-
-    user_agents.each do |user_agent|
-      normalized_ua = user_agent.to_s.presence || "Unknown"
-      user_agent_counts[normalized_ua] += 1
-
-      os_counts[extract_os(normalized_ua)] += 1
-      device_counts[extract_device(normalized_ua)] += 1
-    end
-
-    {
-      device: format_breakdown(device_counts, logged_visits_count),
-      os: format_breakdown(os_counts, logged_visits_count),
-      user_agent: format_breakdown(
-        user_agent_counts,
+      device_breakdown: format_breakdown(aggregate[:device_counts], logged_visits_count),
+      os_breakdown: format_breakdown(aggregate[:os_counts], logged_visits_count),
+      user_agent_breakdown: format_breakdown(
+        aggregate[:user_agent_counts],
         logged_visits_count,
         limit: USER_AGENT_BREAKDOWN_LIMIT,
         collapse_other: true
@@ -78,7 +44,42 @@ class LinksStatsController < ApplicationController
     }
   end
 
+  def empty_aggregate
+    {
+      logged_visits_count: 0,
+      user_agent_counts: Hash.new(0),
+      os_counts: Hash.new(0),
+      device_counts: Hash.new(0)
+    }
+  end
+
+  def build_breakdown_aggregates(links)
+    link_ids = links.map(&:id)
+    return {} if link_ids.empty?
+
+    aggregates = Hash.new { |hash, key| hash[key] = empty_aggregate }
+
+    # Aggregate in SQL to avoid loading one Ruby row per visit.
+    # Ruby only assembles grouped results into the API payload.
+    Visit.where(link_id: link_ids)
+      .group(:link_id, :user_agent)
+      .pluck(:link_id, :user_agent, Arel.sql("COUNT(*)"))
+      .each do |link_id, user_agent, count|
+        normalized_ua = user_agent.to_s.presence || "Unknown"
+        event_count = count.to_i
+
+        aggregates[link_id][:logged_visits_count] += event_count
+        aggregates[link_id][:user_agent_counts][normalized_ua] += event_count
+        aggregates[link_id][:os_counts][extract_os(normalized_ua)] += event_count
+        aggregates[link_id][:device_counts][extract_device(normalized_ua)] += event_count
+      end
+
+    aggregates
+  end
+
   def format_breakdown(counts, denominator, limit: nil, collapse_other: false)
+    return [] if denominator.to_i <= 0
+
     sorted = counts
       .sort_by { |name, count| [-count, name] }
 
