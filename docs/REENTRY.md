@@ -50,11 +50,19 @@ docker compose exec -e RAILS_ENV=test backend bundle exec rspec
 
 ## Current Status
 - Health check: `GET /_internal/up`
-- Link creation: `POST /links`
+- Link creation: `POST /links` (auth required: Bearer or ApiKey)
+- Link management:
+  - `GET /links` (paginated)
+  - `PATCH /links/:id`
+  - `DELETE /links/:id`
 - Redirect: `GET /:slug`
 - User signup: `POST /signup`
+- User login: `POST /login`
+- API key rotation: `POST /api_keys/rotate` (JWT required)
 - Visit tracking: async enqueue on redirect via `TrackVisitJob`
-- Link stats dashboard API: `GET /links/stats` (Bearer auth)
+- Link stats dashboard API: `GET /links/stats` (Bearer/ApiKey)
+  - Includes device/OS/user-agent breakdowns with percentages
+- Global Top 100 API: `GET /links/top` (public)
 
 ## Environment Notes
 - No new env vars were required for HU-03.
@@ -63,8 +71,7 @@ docker compose exec -e RAILS_ENV=test backend bundle exec rspec
 - No new env vars were required for HU-05.
 
 ## Next Likely Steps
-- Close remaining challenge gaps:
-  - protect link creation with auth,
-  - add links CRUD + paginated list endpoint,
-  - implement API key flow,
-  - implement frontend dashboard views.
+- Final delivery hardening:
+  - finalize delivery verification checklist,
+  - run final CI gate before merge,
+  - align repo docs with implemented frontend (`link-spark`) and API contracts.
