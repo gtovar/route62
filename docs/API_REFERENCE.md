@@ -2,6 +2,9 @@
 
 ## Base URL
 - Local development: `http://localhost:3000`
+- CORS (local dev):
+  - `http://localhost:8080`
+  - `http://localhost:3001`
 
 ## Health
 
