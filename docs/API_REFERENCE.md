@@ -12,6 +12,8 @@
 ## Create Short Link
 
 `POST /links`
+- Auth:
+  - Required header: `Authorization: Bearer <jwt>`
 - Request JSON:
   - `{ "link": { "long_url": "https://example.com/very/long/path" } }`
 - Success response:
@@ -19,6 +21,9 @@
   - Body:
     - `{ "id": 1, "long_url": "...", "slug": "abc", "short_url": "http://localhost:3000/abc" }`
 - Error response:
+  - Status: `401 Unauthorized`
+  - Body:
+    - `{ "errors": ["Unauthorized"] }`
   - Status: `422 Unprocessable Content`
   - Body:
     - `{ "errors": ["Long url Invalid URL format"] }`

@@ -1,6 +1,8 @@
 class LinksController < ApplicationController
+  before_action :authenticate_user!
+
   def create
-    link = Link.new(link_params)
+    link = current_user.links.new(link_params)
 
     Link.transaction do
       link.save!
