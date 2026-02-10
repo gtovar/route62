@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_02_10_000200) do
+ActiveRecord::Schema[8.1].define(version: 2026_02_10_000300) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -44,6 +44,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_10_000200) do
     t.datetime "updated_at", null: false
     t.string "user_agent", null: false
     t.datetime "visited_at", null: false
+    t.index ["link_id", "ip_address"], name: "index_visits_on_link_id_and_ip_address"
     t.index ["link_id"], name: "index_visits_on_link_id"
     t.index ["visited_at"], name: "index_visits_on_visited_at"
   end

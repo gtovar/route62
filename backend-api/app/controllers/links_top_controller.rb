@@ -1,14 +1,21 @@
 class LinksTopController < ApplicationController
-  def index
-    links = Link.left_joins(:visits)
-      .select("links.id, links.long_url, links.slug, links.created_at, COUNT(visits.id) AS total_clicks, COUNT(DISTINCT visits.ip_address) AS unique_visits")
-      .group("links.id, links.long_url, links.slug, links.created_at")
-      .order(Arel.sql("COUNT(visits.id) DESC, links.created_at DESC"))
-      .limit(100)
+  TOP_LINKS_CACHE_KEY = "links_top:v1"
+  TOP_LINKS_TTL = 60.seconds
 
-    render json: {
-      links: links.map { |link| top_link_payload(link) }
-    }
+  def index
+    payload = Rails.cache.fetch(TOP_LINKS_CACHE_KEY, expires_in: TOP_LINKS_TTL) do
+      links = Link.left_joins(:visits)
+        .select("links.id, links.long_url, links.slug, links.created_at, COUNT(visits.id) AS total_clicks, COUNT(DISTINCT visits.ip_address) AS unique_visits")
+        .group("links.id, links.long_url, links.slug, links.created_at")
+        .order(Arel.sql("COUNT(visits.id) DESC, links.created_at DESC"))
+        .limit(100)
+
+      {
+        links: links.map { |link| top_link_payload(link) }
+      }
+    end
+
+    render json: payload
   end
 
   private
