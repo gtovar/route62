@@ -1,5 +1,5 @@
 # PROJECT_STATE — URL Shortener Challenge
-[Last update: 2026-02-09 — HU-05 completed]
+[Last update: 2026-02-10 — HU-05 hardening + global top/public + auth/api-key gaps closed]
 
 ## 1. System Overview
 Initial setup of the monolithic repo containing Rails 8 API and React Frontend, fully dockerized.
@@ -98,4 +98,4 @@ Initial setup of the monolithic repo containing Rails 8 API and React Frontend, 
   - result cap at 100 items.
 
 ## 8. Next Immediate Action (Single Step)
-Close remaining global challenge gaps (auth for create links, links CRUD + pagination, API key, frontend dashboard UI).
+Finalize delivery package (README + demo flow + PR evidence) and run final CI gate.

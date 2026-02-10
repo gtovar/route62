@@ -35,6 +35,12 @@ Run backend tests:
 make -f ops/Makefile test-backend
 ```
 
+Auth for integrations:
+```bash
+curl -H "Authorization: ApiKey <your_api_key>" http://localhost:3000/links
+```
+Note: `X-API-Key` is temporarily accepted for backward compatibility and marked as deprecated.
+
 ## Extended Documentation
 | Document | Description |
 | --- | --- |

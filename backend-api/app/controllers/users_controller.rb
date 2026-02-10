@@ -4,7 +4,7 @@ class UsersController < ApplicationController
 
     if user.save
       token = AuthTokenService.encode(user_id: user.id)
-      render json: { user: user_payload(user), token: token }, status: :created
+      render json: { user: signup_user_payload(user), token: token }, status: :created
     else
       render json: { errors: user.errors.full_messages }, status: :unprocessable_content
     end
@@ -18,11 +18,13 @@ class UsersController < ApplicationController
     params.require(:user).permit(:name, :email, :password)
   end
 
-  def user_payload(user)
+  def signup_user_payload(user)
     {
       id: user.id,
       name: user.name,
-      email: user.email
+      email: user.email,
+      api_key: user.plain_api_key,
+      api_key_last4: user.api_key_last4
     }
   end
 end

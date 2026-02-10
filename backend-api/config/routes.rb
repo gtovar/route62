@@ -1,7 +1,10 @@
 Rails.application.routes.draw do
   post "/signup", to: "users#create"
+  post "/login", to: "sessions#create"
+  post "/api_keys/rotate", to: "api_keys#rotate"
   get "/links/stats", to: "links_stats#index"
-  resources :links, only: [:create]
+  get "/links/top", to: "links_top#index"
+  resources :links, only: [:index, :create, :update, :destroy]
 
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 

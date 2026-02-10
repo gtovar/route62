@@ -48,3 +48,57 @@
 
 ### Decision Maker (G0–G3)
 - No new ADR for HU-05. Decision considered routine extension of existing analytics model and query layer.
+
+### Gap Closure — Links Management + Pagination (Closed)
+- Expanded `links` routes from create-only to full management scope used by this phase:
+  - `GET /links`
+  - `PATCH /links/:id`
+  - `DELETE /links/:id`
+- Added paginated current-user listing with response metadata:
+  - `page`, `per_page`, `total_count`, `total_pages`
+- Enforced ownership on update/delete via `current_user.links.find`.
+- Added request specs for:
+  - auth required
+  - pagination behavior
+  - ownership protection (`404` for foreign links)
+- Updated API reference with new endpoint contracts.
+
+### Decision Maker (G0–G3)
+- No new ADR for this gap closure; implemented as incremental API surface extension consistent with existing auth and ownership model.
+
+## 2026-02-10
+
+### Gap Closure — Login Endpoint (Closed)
+- Added `POST /login` via `SessionsController#create`.
+- Login now returns `{ user, token }` for valid credentials.
+- Invalid credentials return `401` with a generic auth error.
+
+### Gap Closure — API Key Flow (Closed)
+- Added explicit API key authentication flow:
+  - `Authorization: ApiKey <key>` + legacy `X-API-Key` compatibility.
+- Added API key rotation endpoint:
+  - `POST /api_keys/rotate` (JWT required).
+- Added digest-based API key storage fields and migrations:
+  - `api_key_digest`, `api_key_last4`, `api_key_rotated_at`.
+- Added request specs for API key auth paths and rotate endpoint.
+
+### Gap Closure — Stats Breakdown (Closed)
+- Extended `GET /links/stats` with:
+  - `breakdown_denominator`
+  - `device_breakdown`
+  - `os_breakdown`
+  - `user_agent_breakdown` (Top 10 + `Other`)
+- Added OS fallback parsing for stable classification across UA formats.
+- Added request specs for percentage and breakdown behavior.
+
+### Gap Closure — Public Global Top 100 (Closed)
+- Added public endpoint:
+  - `GET /links/top`
+- Added request specs for:
+  - public access without auth,
+  - top-100 cap,
+  - tie-break ordering by `created_at DESC`.
+- Connected frontend Top 100 view to the global endpoint.
+
+### Decision Maker (G0–G3)
+- No new ADR created. Changes were implemented as incremental extensions of existing auth/analytics architecture.
