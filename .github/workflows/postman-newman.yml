@@ -1,0 +1,114 @@
+name: Postman Newman
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'docs/postman/**'
+      - '.github/workflows/postman-newman.yml'
+
+jobs:
+  newman:
+    runs-on: ubuntu-latest
+    env:
+      COMPOSE_PROJECT_NAME: route62
+      RAILS_ALLOWED_HOSTS: postman-backend,postman-backend:3000
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Prepare env
+        run: cp .env.example .env
+
+      - name: Start data services
+        run: docker compose up -d --build db redis
+
+      - name: Wait for database
+        run: |
+          for i in {1..60}; do
+            if docker compose exec -T db pg_isready -U postgres > /dev/null 2>&1; then
+              echo "Database is ready"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "Database did not become ready in time"
+          docker compose logs --tail=200 db
+          exit 1
+
+      - name: Run migrations
+        run: docker compose run --rm --user root backend bundle exec rails db:create db:migrate
+
+      - name: Start backend (root, detached)
+        run: |
+          docker compose run -d --name postman-backend --service-ports --user root \
+            -e RAILS_ALLOWED_HOSTS="${RAILS_ALLOWED_HOSTS}" \
+            backend bash -lc "rm -f tmp/pids/server.pid && bundle exec rails s -b 0.0.0.0"
+
+      - name: Wait for backend health
+        run: |
+          for i in {1..90}; do
+            if ! docker ps --format '{{.Names}}' | grep -q '^postman-backend$'; then
+              echo "Backend container is not running"
+              docker logs postman-backend || true
+              docker compose logs --tail=200 db redis
+              exit 1
+            fi
+            if docker exec postman-backend curl -fsS http://127.0.0.1:3000/_internal/up > /dev/null; then
+              echo "Backend is healthy"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "Backend did not become healthy in time"
+          docker logs postman-backend || true
+          docker compose logs --tail=200 db redis
+          exit 1
+
+      - name: Run collection smoke
+        run: |
+          docker network inspect route62_default > /dev/null 2>&1 || {
+            echo "network missing: route62_default"
+            docker network ls
+            exit 1
+          }
+
+          docker run --rm \
+            --network route62_default \
+            curlimages/curl:8.10.1 \
+            -fsS http://postman-backend:3000/_internal/up || {
+              echo "precheck failed: postman-backend health endpoint unreachable from route62_default"
+              docker logs postman-backend || true
+              docker compose logs --tail=200 db redis
+              exit 1
+            }
+
+          docker run --rm \
+            --network route62_default \
+            -v "$PWD:/etc/newman" \
+            postman/newman:alpine \
+            run /etc/newman/docs/postman/url-shortener-challenge.postman_collection.json \
+            -e /etc/newman/docs/postman/url-shortener-challenge.local.postman_environment.json \
+            --env-var base_url=http://postman-backend:3000 \
+            --folder "Public" \
+            --bail \
+            --timeout-request 15000 \
+            --delay-request 100 \
+            --reporters cli
+
+      - name: Debug compose logs on failure
+        if: failure()
+        run: |
+          docker logs postman-backend || true
+          docker exec postman-backend bash -lc 'echo "RAILS_ALLOWED_HOSTS=$RAILS_ALLOWED_HOSTS"' || true
+          docker compose logs --tail=200 backend || true
+          docker compose logs --tail=200 db redis
+          docker compose ps
+          docker network ls
+          docker inspect postman-backend --format '{{json .NetworkSettings.Networks}}' || true
+
+      - name: Stop stack
+        if: always()
+        run: |
+          docker rm -f postman-backend || true
+          docker compose down -v
