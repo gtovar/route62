@@ -1,0 +1,43 @@
+name: Postman Newman
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'docs/postman/**'
+      - '.github/workflows/postman-newman.yml'
+
+jobs:
+  newman:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install Newman
+        run: npm install -g newman
+
+      - name: Prepare env
+        run: cp .env.example .env
+
+      - name: Start backend stack
+        run: docker compose up -d --build
+
+      - name: Run migrations
+        run: docker compose exec -T backend bundle exec rails db:create db:migrate
+
+      - name: Run collection smoke
+        run: |
+          newman run docs/postman/url-shortener-challenge.postman_collection.json \
+            -e docs/postman/url-shortener-challenge.local.postman_environment.json \
+            --folder "Public" \
+            --reporters cli
+
+      - name: Stop stack
+        if: always()
+        run: docker compose down -v

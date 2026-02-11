@@ -51,10 +51,19 @@ Note: `X-API-Key` is temporarily accepted for backward compatibility and marked 
 | `docs/adr/001-shortening-algorithm.md` | ADR for Base62 + shuffled alphabet decision. |
 | `docs/adr/002-auth-strategy.md` | ADR for HU-03 authentication strategy (JWT on signup). |
 | `docs/adr/003-visit-tracking-strategy.md` | ADR for HU-04 async visit tracking strategy. |
-| `docs/postman/url-shortener-challenge.postman_collection.json` | Postman collection for signup, link creation, redirect, and stats. |
+| `docs/postman/url-shortener-challenge.postman_collection.json` | Postman harness (auth, API key lifecycle, links, public endpoints, and negative tests). |
+| `docs/postman/url-shortener-challenge.local.postman_environment.json` | Local Postman environment defaults (`base_url`, credentials, auth runtime variables). |
+| `docs/postman/data/links-data.json` | Data-driven input sample for Runner/Newman link creation runs. |
 | `docs/REENTRY.md` | Reentry guide for fast context recovery. |
 | `Sprint_Log.md` | Daily story closure and sprint progress log. |
 | `PROJECT_STATE.md` | Current implementation status by user story. |
+
+Postman/Newman quick run:
+```bash
+newman run docs/postman/url-shortener-challenge.postman_collection.json \
+  -e docs/postman/url-shortener-challenge.local.postman_environment.json \
+  --folder "Public"
+```
 
 ## Contributing
 - Create feature branches from `develop` (example: `feat/hu1-create-short-link`).
