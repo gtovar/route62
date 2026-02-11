@@ -38,26 +38,35 @@ jobs:
       - name: Run migrations
         run: docker compose run --rm --user root backend bundle exec rails db:create db:migrate
 
-      - name: Start backend
-        run: RAILS_ALLOWED_HOSTS="${RAILS_ALLOWED_HOSTS}" docker compose up -d --build backend
+      - name: Start backend (root, detached)
+        run: |
+          docker compose run -d --name postman-backend --service-ports --user root \
+            -e RAILS_ALLOWED_HOSTS="${RAILS_ALLOWED_HOSTS}" \
+            backend bash -lc "rm -f tmp/pids/server.pid && mkdir -p log tmp/pids && touch log/development.log && chmod 0666 log/development.log && bundle exec rails s -b 0.0.0.0"
 
       - name: Wait for backend health
         run: |
           for i in {1..90}; do
-            if docker compose exec -T backend curl -fsS http://127.0.0.1:3000/_internal/up > /dev/null; then
+            if ! docker ps --format '{{.Names}}' | grep -q '^postman-backend$'; then
+              echo "Backend container is not running"
+              docker logs postman-backend || true
+              docker compose logs --tail=200 db redis
+              exit 1
+            fi
+            if docker exec postman-backend curl -fsS http://127.0.0.1:3000/_internal/up > /dev/null; then
               echo "Backend is healthy"
               exit 0
             fi
             sleep 2
           done
           echo "Backend did not become healthy in time"
-          docker compose logs --tail=200 backend db redis
+          docker logs postman-backend || true
+          docker compose logs --tail=200 db redis
           exit 1
 
       - name: Run collection smoke
         run: |
-          BACKEND_CID=$(docker compose ps -q backend)
-          NETWORK_NAME=$(docker inspect "$BACKEND_CID" --format '{{range $k, $v := .NetworkSettings.Networks}}{{println $k}}{{end}}' | head -n 1 | tr -d '\r')
+          NETWORK_NAME=$(docker inspect postman-backend --format '{{range $k, $v := .NetworkSettings.Networks}}{{println $k}}{{end}}' | head -n 1 | tr -d '\r')
           docker run --rm \
             --network "$NETWORK_NAME" \
             -v "$PWD:/etc/newman" \
@@ -71,13 +80,15 @@ jobs:
       - name: Debug compose logs on failure
         if: failure()
         run: |
-          docker compose logs --tail=200 backend db redis
-          docker compose exec -T backend bash -lc 'echo "RAILS_ALLOWED_HOSTS=$RAILS_ALLOWED_HOSTS"' || true
+          docker logs postman-backend || true
+          docker exec postman-backend bash -lc 'echo "RAILS_ALLOWED_HOSTS=$RAILS_ALLOWED_HOSTS"' || true
+          docker compose logs --tail=200 db redis
           docker compose ps
           docker network ls
-          BACKEND_CID=$(docker compose ps -q backend)
-          docker inspect "$BACKEND_CID" --format '{{json .NetworkSettings.Networks}}' || true
+          docker inspect postman-backend --format '{{json .NetworkSettings.Networks}}' || true
 
       - name: Stop stack
         if: always()
-        run: docker compose down -v
+        run: |
+          docker rm -f postman-backend || true
+          docker compose down -v
