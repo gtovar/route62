@@ -25,11 +25,27 @@ jobs:
       - name: Prepare env
         run: cp .env.example .env
 
-      - name: Start backend stack
-        run: docker compose up -d --build db redis backend
+      - name: Start data services
+        run: docker compose up -d --build db redis
+
+      - name: Wait for database
+        run: |
+          for i in {1..60}; do
+            if docker compose exec -T db pg_isready -U postgres > /dev/null 2>&1; then
+              echo "Database is ready"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "Database did not become ready in time"
+          docker compose logs --tail=200 db
+          exit 1
 
       - name: Run migrations
         run: docker compose run --rm --user root backend bundle exec rails db:create db:migrate
+
+      - name: Start backend
+        run: docker compose up -d backend
 
       - name: Wait for backend health
         run: |
