@@ -14,14 +14,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-
-      - name: Install Newman
-        run: npm install -g newman
-
       - name: Prepare env
         run: cp .env.example .env
 
@@ -52,7 +44,7 @@ jobs:
       - name: Wait for backend health
         run: |
           for i in {1..90}; do
-            if curl -fsS http://localhost:3000/_internal/up > /dev/null; then
+            if docker exec postman-backend curl -fsS http://127.0.0.1:3000/_internal/up > /dev/null; then
               echo "Backend is healthy"
               exit 0
             fi
@@ -65,8 +57,14 @@ jobs:
 
       - name: Run collection smoke
         run: |
-          newman run docs/postman/url-shortener-challenge.postman_collection.json \
-            -e docs/postman/url-shortener-challenge.local.postman_environment.json \
+          NETWORK_NAME=$(docker inspect postman-backend --format '{{range $k, $v := .NetworkSettings.Networks}}{{println $k}}{{end}}' | head -n 1 | tr -d '\r')
+          docker run --rm \
+            --network "$NETWORK_NAME" \
+            -v "$PWD:/etc/newman" \
+            postman/newman:alpine \
+            run /etc/newman/docs/postman/url-shortener-challenge.postman_collection.json \
+            -e /etc/newman/docs/postman/url-shortener-challenge.local.postman_environment.json \
+            --env-var base_url=http://postman-backend:3000 \
             --folder "Public" \
             --reporters cli
 
