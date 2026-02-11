@@ -44,12 +44,14 @@ jobs:
       - name: Run migrations
         run: docker compose run --rm --user root backend bundle exec rails db:create db:migrate
 
-      - name: Start backend
-        run: docker compose up -d backend
+      - name: Start backend (root, detached)
+        run: |
+          docker compose run -d --name postman-backend --service-ports --user root backend \
+            bash -lc "rm -f tmp/pids/server.pid && bundle exec rails s -b 0.0.0.0"
 
       - name: Wait for backend health
         run: |
-          for i in {1..60}; do
+          for i in {1..90}; do
             if curl -fsS http://localhost:3000/_internal/up > /dev/null; then
               echo "Backend is healthy"
               exit 0
@@ -57,7 +59,8 @@ jobs:
             sleep 2
           done
           echo "Backend did not become healthy in time"
-          docker compose logs --tail=200 backend db redis
+          docker logs postman-backend || true
+          docker compose logs --tail=200 db redis
           exit 1
 
       - name: Run collection smoke
@@ -69,8 +72,12 @@ jobs:
 
       - name: Debug compose logs on failure
         if: failure()
-        run: docker compose logs --tail=200 backend db redis
+        run: |
+          docker logs postman-backend || true
+          docker compose logs --tail=200 db redis
 
       - name: Stop stack
         if: always()
-        run: docker compose down -v
+        run: |
+          docker rm -f postman-backend || true
+          docker compose down -v
