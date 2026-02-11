@@ -31,6 +31,19 @@ jobs:
       - name: Run migrations
         run: docker compose run --rm --user root backend bundle exec rails db:create db:migrate
 
+      - name: Wait for backend health
+        run: |
+          for i in {1..60}; do
+            if curl -fsS http://localhost:3000/_internal/up > /dev/null; then
+              echo "Backend is healthy"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "Backend did not become healthy in time"
+          docker compose logs --tail=200 backend db redis
+          exit 1
+
       - name: Run collection smoke
         run: |
           newman run docs/postman/url-shortener-challenge.postman_collection.json \
