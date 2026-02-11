@@ -41,6 +41,7 @@ services:
     environment:
       DATABASE_URL: postgres://postgres:password@db:5432/shortener_dev
       REDIS_URL: redis://redis:6379/1
+      RAILS_ALLOWED_HOSTS: ${RAILS_ALLOWED_HOSTS:-}
       # Clave para simular producción en local
       RAILS_ENV: development
 
