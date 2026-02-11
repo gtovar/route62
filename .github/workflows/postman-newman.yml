@@ -26,10 +26,10 @@ jobs:
         run: cp .env.example .env
 
       - name: Start backend stack
-        run: docker compose up -d --build
+        run: docker compose up -d --build db redis backend
 
       - name: Run migrations
-        run: docker compose exec -T backend bundle exec rails db:create db:migrate
+        run: docker compose run --rm backend bundle exec rails db:create db:migrate
 
       - name: Run collection smoke
         run: |
@@ -37,6 +37,10 @@ jobs:
             -e docs/postman/url-shortener-challenge.local.postman_environment.json \
             --folder "Public" \
             --reporters cli
+
+      - name: Debug compose logs on failure
+        if: failure()
+        run: docker compose logs --tail=200 backend db redis
 
       - name: Stop stack
         if: always()
